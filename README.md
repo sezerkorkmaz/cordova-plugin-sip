@@ -1,5 +1,5 @@
 # cordova-plugin-sip
-<h2>SIP plugin for Cordova Apps (IOS and Android)</h2>
+<h2>SIP plugin for Cordova & Phonegap Apps (IOS and Android)</h2>
 
 <h3>IOS</h3>
 
