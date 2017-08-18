@@ -4,16 +4,17 @@
 <h3>IOS</h3>
 
 <h4>Build Settings -> Header Search Paths</h4>
-<code>
 
+```
     "$(SRCROOT)/YOURPROJECTNAME/Plugins/cordova-plugin-sip/include"
     "$(SRCROOT)/YOURPROJECTNAME/Plugins/cordova-plugin-sip/include/belle-sip"
     "$(SRCROOT)/YOURPROJECTNAME/Plugins/cordova-plugin-sip/include/ortp"
     "$(SRCROOT)/YOURPROJECTNAME/Plugins/cordova-plugin-sip/include/linphone"
     "$(SRCROOT)/YOURPROJECTNAME/Plugins/cordova-plugin-sip/include/mediastreamer2"
-</code>
+```
 
 <h4>You must import these files in the  Bridging Header File</h4>
+
 ```
     #include "Plugins/cordova-plugin-sip/include/linphone/lpconfig.h"
     #include "Plugins/cordova-plugin-sip/include/linphone/linphonecore.h"
