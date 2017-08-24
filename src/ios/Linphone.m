@@ -4,7 +4,7 @@
 
 @implementation Linphone
 
-@synthesize call ;
+@synthesize call;
 @synthesize lc;
 static bool_t running=TRUE;
 NSString *loginCallBackID ;
@@ -40,13 +40,15 @@ static void registration_state_changed(struct _LinphoneCore *lc, LinphoneProxyCo
 /*
  * Call state notification callback
  */
-static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCallState cstate, const char *msg){
+static void call_state_changed(LinphoneCore *lc, LinphoneCall *mycall, LinphoneCallState cstate, const char *msg){
     
     if(cstate == LinphoneCallError ){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Error"];
         [himself.commandDelegate sendPluginResult:pluginResult callbackId:callCallBackID];
         
-        call = NULL;
+        
+        
+        himself.call = NULL;
     }
     if(cstate == LinphoneCallConnected){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Connected"];
@@ -54,7 +56,7 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
     }
     if(cstate == LinphoneCallEnd){
         
-        call = NULL;
+        himself.call = NULL;
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"End"];
         [himself.commandDelegate sendPluginResult:pluginResult callbackId:callCallBackID];
         isspeaker = FALSE;
@@ -65,6 +67,9 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
     }
     if(cstate == LinphoneCallIncomingReceived){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Incoming"];
+        himself.call = mycall;
+        
+     
         [himself.commandDelegate sendPluginResult:pluginResult callbackId:callCallBackID];
         
     }
@@ -88,6 +93,7 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
 - (void)listenCall:(CDVInvokedUrlCommand*)command
 {
     callCallBackID = command.callbackId;
+    
     
 }
 
@@ -148,7 +154,7 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
     //}
     call = NULL;
     running = TRUE;
-    tListen = [NSTimer scheduledTimerWithTimeInterval: 0.05
+    tListen = [NSTimer scheduledTimerWithTimeInterval: 0.5
                                                target: self
                                              selector:@selector(listenTick:)
                                              userInfo: nil repeats:YES];
@@ -212,7 +218,7 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
     
     if(call && linphone_call_get_state(call) != LinphoneCallEnd){
         linphone_core_terminate_call(lc, call);
-        linphone_call_unref(call);
+        //linphone_call_unref(call);
     }
     call = NULL;
     
