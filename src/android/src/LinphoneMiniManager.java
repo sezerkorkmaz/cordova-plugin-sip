@@ -25,9 +25,8 @@ import android.view.SurfaceView;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
-import org.linphone.LinphonePreferences;
-import org.linphone.LinphoneUtils;
 import org.linphone.core.LinphoneAddress;
+import org.linphone.core.LinphoneAuthInfo;
 import org.linphone.core.LinphoneCall;
 import org.linphone.core.LinphoneCall.State;
 import org.linphone.core.LinphoneCallParams;
@@ -45,6 +44,7 @@ import org.linphone.core.LinphoneCoreFactory;
 import org.linphone.core.LinphoneCoreListener;
 import org.linphone.core.LinphoneEvent;
 import org.linphone.core.LinphoneFriend;
+import org.linphone.core.LinphoneFriendList;
 import org.linphone.core.LinphoneInfoMessage;
 import org.linphone.core.LinphoneProxyConfig;
 import org.linphone.core.PublishState;
@@ -66,7 +66,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 	public static LinphoneMiniManager mInstance;
 	public static Context mContext;
 	public static LinphoneCore mLinphoneCore;
-    public static LinphonePreferences mPrefs;
+    //public static LinphonePreferences mPrefs;
 	public static Timer mTimer;
 	public static SurfaceView mCaptureView;
 	public CallbackContext mCallbackContext;
@@ -75,7 +75,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 	public LinphoneMiniManager(Context c) {
 		mContext = c;
 		LinphoneCoreFactory.instance().setDebugMode(true, "Linphone Mini");
-        mPrefs = LinphonePreferences.instance();
+        //mPrefs = LinphonePreferences.instance();
 
 		try {
 			String basePath = mContext.getFilesDir().getAbsolutePath();
@@ -192,10 +192,11 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
         }
 
         lAddress.setDisplayName(displayName);
-        boolean isLowBandwidthConnection1 = !LinphoneUtils.isHighBandwidthConnection(mContext);
+
         if(mLinphoneCore.isNetworkReachable()) {
             try {
-                LinphoneCallParams params = mLinphoneCore.createDefaultCallParameters();
+				//TODO:SEZER
+                LinphoneCallParams params = mLinphoneCore.createCallParams(mLinphoneCore.getCurrentCall());
                 params.setVideoEnabled(false);
                 mLinphoneCore.inviteAddressWithParams(lAddress, params);
             } catch (LinphoneCoreException var7) {
@@ -291,7 +292,12 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 
 	@Override
 	public void authInfoRequested(LinphoneCore linphoneCore, String s, String s1, String s2) {
+		Log.d("authInfoRequested");
+	}
 
+	@Override
+	public void authenticationRequested(LinphoneCore linphoneCore, LinphoneAuthInfo linphoneAuthInfo, LinphoneCore.AuthMethod authMethod) {
+		Log.d("authenticationRequested");
 	}
 
 	@Override
@@ -312,7 +318,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 		if(cstate == RegistrationState.RegistrationOk)
 		{
 			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationSuccess"));
-			startIterate();
+
 		}
 		else if(cstate == RegistrationState.RegistrationFailed)
 		{
@@ -328,13 +334,18 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 
 	@Override
 	public void notifyPresenceReceived(LinphoneCore lc, LinphoneFriend lf) {
-
+		Log.d("notifyPresenceReceived");
 	}
 
 	@Override
 	public void messageReceived(LinphoneCore lc, LinphoneChatRoom cr,
 			LinphoneChatMessage message) {
 		Log.d("Message received from " + cr.getPeerAddress().asString() + " : " + message.getText() + "(" + message.getExternalBodyUrl() + ")");
+	}
+
+	@Override
+	public void messageReceivedUnableToDecrypted(LinphoneCore linphoneCore, LinphoneChatRoom linphoneChatRoom, LinphoneChatMessage linphoneChatMessage) {
+		Log.d("messageReceivedUnableToDecrypted");
 	}
 
 	@Override
@@ -360,6 +371,21 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 
 	@Override
 	public void uploadStateChanged(LinphoneCore linphoneCore, LinphoneCore.LogCollectionUploadState logCollectionUploadState, String s) {
+
+	}
+
+	@Override
+	public void friendListCreated(LinphoneCore linphoneCore, LinphoneFriendList linphoneFriendList) {
+
+	}
+
+	@Override
+	public void friendListRemoved(LinphoneCore linphoneCore, LinphoneFriendList linphoneFriendList) {
+
+	}
+
+	@Override
+	public void networkReachableChanged(LinphoneCore linphoneCore, boolean b) {
 
 	}
 
@@ -466,17 +492,45 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 
 	public void login(String username, String password, String domain, CallbackContext callbackContext) {
 		try {
-		LinphoneAddress address = LinphoneCoreFactory.instance().createLinphoneAddress("sip:" + username + "@" + domain);
-		LinphonePreferences.AccountBuilder builder = new LinphonePreferences.AccountBuilder(getLc())
-				.setUsername(username)
-				.setDomain(domain)
-				.setPassword(password);
+		//LinphoneAddress address = LinphoneCoreFactory.instance().createLinphoneAddress("sip:" + username + "@" + domain);
+
+
+
+//		LinphonePreferences.AccountBuilder builder = new LinphonePreferences.AccountBuilder(getLc())
+//				.setUsername(username)
+//				.setDomain(domain)
+//				.setPassword(password);
+
+			LinphoneCoreFactory lcFactory = LinphoneCoreFactory.instance();
+
+
+			LinphoneAddress address = lcFactory.createLinphoneAddress("sip:" + username + "@" + domain);
+			username = address.getUserName();
+			domain = address.getDomain();
+			if(password != null) {
+				mLinphoneCore.addAuthInfo(lcFactory.createAuthInfo(username, password, (String)null, domain));
+			}
+
+
+			LinphoneProxyConfig proxyCfg = mLinphoneCore.createProxyConfig("sip:" + username + "@" + domain, domain, (String)null, true);
+
+			proxyCfg.enableRegister(true);
+			mLinphoneCore.addProxyConfig(proxyCfg);
+			mLinphoneCore.setDefaultProxyConfig(proxyCfg);
+
+
+
+
 			mLoginCallbackContext = callbackContext;
 
-			builder.saveNewAccount();
+
+
+			//builder.saveNewAccount();
 		} catch (LinphoneCoreException e) {
 			e.printStackTrace();
 		}
 	}
 
 }
+
+
