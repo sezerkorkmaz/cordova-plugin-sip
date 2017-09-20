@@ -23,12 +23,9 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 
-import org.linphone.CallManager;
 import org.linphone.core.LinphoneCore;
 import org.linphone.mediastream.Log;
 import org.linphone.mediastream.video.AndroidVideoWindowImpl;
