@@ -1,0 +1,19 @@
+{
+  "name": "cordova-plugin-sip",
+  "version": "1.0.0",
+  "description": "<h2>SIP plugin for Cordova & Phonegap Apps (IOS and Android)</h2>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sezerkorkmaz/cordova-plugin-sip.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sezerkorkmaz/cordova-plugin-sip/issues"
+  },
+  "homepage": "https://github.com/sezerkorkmaz/cordova-plugin-sip#readme"
+}
