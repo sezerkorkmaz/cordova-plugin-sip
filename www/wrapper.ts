@@ -21,4 +21,6 @@ export class Linphone extends IonicNativePlugin {
     @Cordova()
     hangup(): Promise<any> { return; }
 
+    @Cordova()
+    listenCall(): Promise<any> { return; }
 }
