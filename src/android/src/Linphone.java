@@ -1,7 +1,12 @@
 package com.sip.linphone;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.sip.SipAudioCall;
+import android.net.sip.SipManager;
+import android.net.sip.SipProfile;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -20,13 +25,21 @@ public class Linphone extends CordovaPlugin  {
     public static LinphoneMiniManager mLinphoneManager;
     public static LinphoneCore mLinphoneCore;
     public static Context mContext;
+    private static final int RC_MIC_PERM = 2;
     public static Timer mTimer;
     public CallbackContext mListenCallback;
+    CordovaInterface cordova;
+
+    public SipManager manager = null;
+    public SipProfile me = null;
+    public SipAudioCall call = null;
+
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
 
+        this.cordova = cordova;
         mContext = cordova.getActivity().getApplicationContext();
         mLinphoneManager = new LinphoneMiniManager(mContext);
         mLinphoneCore = mLinphoneManager.getLc();
@@ -73,14 +86,18 @@ public class Linphone extends CordovaPlugin  {
         return false;
     }
 
-    public static synchronized void login(final String username, final String password, final String domain, final CallbackContext callbackContext) {
-        try{
-            mLinphoneManager.login(username,password,domain,callbackContext);
-        }catch (Exception e){
-            Log.d("login error", e.getMessage());
-            callbackContext.error(e.getMessage());
-        }
+    public void login(final String username, final String password, final String domain, final CallbackContext callbackContext) {
+      if (!cordova.hasPermission(Manifest.permission.RECORD_AUDIO)) {
+        cordova.requestPermission(this, RC_MIC_PERM, Manifest.permission.RECORD_AUDIO);
+      }
+
+      mLinphoneManager.login(username,password,domain,callbackContext);
     }
+
+  @Override
+  public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+
+  }
 
     public static synchronized void logout(final CallbackContext callbackContext) {
         try{
@@ -179,10 +196,9 @@ public class Linphone extends CordovaPlugin  {
             mLinphoneManager.sendDtmf(number.charAt(0));
             Log.d("sendDtmf sukses",number);
             callbackContext.success();
-        }catch (Exception e){
+        } catch (Exception e){
             Log.d("sendDtmf error", e.getMessage());
             callbackContext.error(e.getMessage());
         }
     }
-
 }
