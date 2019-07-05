@@ -15,15 +15,6 @@
 
   <!-- android -->
   <platform name="android">
-    <config-file target="AndroidManifest.xml" parent="/manifest">
-      <uses-permission android:name="android.permission.RECORD_AUDIO" />
-      <uses-feature
-          android:name="android.hardware.camera"
-          android:required="false" />
-      <uses-feature
-          android:name="android.hardware.camera.autofocus"
-          android:required="false" />
-    </config-file>
     <config-file target="config.xml" parent="/*">
       <feature name="Linphone">
         <param name="android-package" value="com.sip.linphone.Linphone" />
@@ -88,7 +79,6 @@
       <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
       <uses-permission android:name="android.permission.WAKE_LOCK" />
       <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-      <uses-feature android:name="android.hardware.microphone" android:required="true" />
     </config-file>
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
       <activity android:name="com.sip.linphone.LinphoneMiniActivity" android:theme="@android:style/Theme.Black.NoTitleBar" />

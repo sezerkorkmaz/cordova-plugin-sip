@@ -40,9 +40,6 @@ Deploy and Run!
 
 <h3>Usage</h3>
 
-Update 1/2/2018 - Typescript definitions are partially implemented.  Will finish soon.
-
-
 ```
     var sipManager = {
         register: function () {
