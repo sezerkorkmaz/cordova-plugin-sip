@@ -25,30 +25,35 @@ import android.view.SurfaceView;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
-import org.linphone.core.LinphoneAddress;
-import org.linphone.core.LinphoneAuthInfo;
-import org.linphone.core.LinphoneCall;
-import org.linphone.core.LinphoneCall.State;
-import org.linphone.core.LinphoneCallParams;
-import org.linphone.core.LinphoneCallStats;
-import org.linphone.core.LinphoneChatMessage;
-import org.linphone.core.LinphoneChatRoom;
-import org.linphone.core.LinphoneContent;
-import org.linphone.core.LinphoneCore;
-import org.linphone.core.LinphoneCore.EcCalibratorStatus;
-import org.linphone.core.LinphoneCore.GlobalState;
-import org.linphone.core.LinphoneCore.RegistrationState;
-import org.linphone.core.LinphoneCore.RemoteProvisioningState;
-import org.linphone.core.LinphoneCoreException;
-import org.linphone.core.LinphoneCoreFactory;
-import org.linphone.core.LinphoneCoreListener;
-import org.linphone.core.LinphoneEvent;
-import org.linphone.core.LinphoneFriend;
-import org.linphone.core.LinphoneFriendList;
-import org.linphone.core.LinphoneInfoMessage;
-import org.linphone.core.LinphoneProxyConfig;
+import org.linphone.core.Address;
+import org.linphone.core.AuthInfo;
+import org.linphone.core.AuthMethod;
+import org.linphone.core.Call;
+import org.linphone.core.Call.State;
+import org.linphone.core.CallLog;
+import org.linphone.core.CallParams;
+import org.linphone.core.CallStats;
+import org.linphone.core.ChatMessage;
+import org.linphone.core.ChatRoom;
+import org.linphone.core.ConfiguringState;
+import org.linphone.core.Content;
+import org.linphone.core.Core;
+
+import org.linphone.core.CoreException;
+import org.linphone.core.EcCalibratorStatus;
+import org.linphone.core.Factory;
+import org.linphone.core.CoreListener;
+import org.linphone.core.Event;
+import org.linphone.core.Friend;
+import org.linphone.core.FriendList;
+import org.linphone.core.GlobalState;
+import org.linphone.core.InfoMessage;
+import org.linphone.core.PresenceModel;
+import org.linphone.core.ProxyConfig;
 import org.linphone.core.PublishState;
+import org.linphone.core.RegistrationState;
 import org.linphone.core.SubscriptionState;
+import org.linphone.core.VersionUpdateCheckResult;
 import org.linphone.mediastream.Log;
 import org.linphone.mediastream.video.capture.hwconf.AndroidCameraConfiguration;
 import org.linphone.mediastream.video.capture.hwconf.AndroidCameraConfiguration.AndroidCamera;
@@ -62,10 +67,11 @@ import java.util.TimerTask;
 /**
  * @author Sylvain Berfini
  */
-public class LinphoneMiniManager implements LinphoneCoreListener {
+public class LinphoneMiniManager implements CoreListener {
+	private static final String TAG = "LM_MNGR";
 	public static LinphoneMiniManager mInstance;
 	public static Context mContext;
-	public static LinphoneCore mLinphoneCore;
+	public static Core mCore;
     //public static LinphonePreferences mPrefs;
 	public static Timer mTimer;
 	public static SurfaceView mCaptureView;
@@ -74,30 +80,32 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 
 	public LinphoneMiniManager(Context c) {
 		mContext = c;
-		LinphoneCoreFactory.instance().setDebugMode(true, "Linphone Mini");
+		Factory.instance().setDebugMode(true, "Linphone Mini");
         //mPrefs = LinphonePreferences.instance();
 
+
 		try {
+
 			String basePath = mContext.getFilesDir().getAbsolutePath();
 			copyAssetsFromPackage(basePath);
-			mLinphoneCore = LinphoneCoreFactory.instance().createLinphoneCore(this, basePath + "/.linphonerc", basePath + "/linphonerc", null, mContext);
-			initLinphoneCoreValues(basePath);
+			mCore = Factory.instance().createCore(basePath + "/.linphonerc", basePath + "/linphonerc", mContext);
+			initCoreValues(basePath);
 
 			setUserAgent();
 			setFrontCamAsDefault();
 			startIterate();
 			mInstance = this;
-	        mLinphoneCore.setNetworkReachable(true); // Let's assume it's true
-
+			mCore.setNetworkReachable(true); // Let's assume it's true
+			mCore.addListener(this);
 			mCaptureView = new SurfaceView(mContext);
-
-		} catch (LinphoneCoreException e) {
 		} catch (IOException e) {
+			Log.e(new Object[]{"Error initializing Linphone",e.getMessage()});
+
 		}
 	}
 
-    public LinphoneCore getLc(){
-        return mLinphoneCore;
+    public Core getLc(){
+        return mCore;
     }
 
 	public static LinphoneMiniManager getInstance() {
@@ -107,12 +115,16 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 	public void destroy() {
 		try {
 			mTimer.cancel();
-			mLinphoneCore.destroy();
+			mCore.stopRinging();
+			mCore.stopConferenceRecording();
+			mCore.stopDtmf();
+			mCore.stopDtmfStream();
+			mCore.stopEchoTester();
 		}
 		catch (RuntimeException e) {
 		}
 		finally {
-			mLinphoneCore = null;
+			mCore = null;
 			mInstance = null;
 		}
 	}
@@ -121,7 +133,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 		TimerTask lTask = new TimerTask() {
 			@Override
 			public void run() {
-				mLinphoneCore.iterate();
+				mCore.iterate();
 			}
 		};
 
@@ -137,7 +149,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 			if (versionName == null) {
 				versionName = String.valueOf(mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionCode);
 			}
-			mLinphoneCore.setUserAgent("LinphoneMiniAndroid", versionName);
+			mCore.setUserAgent("LinphoneMiniAndroid", versionName);
 		} catch (NameNotFoundException e) {
 		}
 	}
@@ -149,7 +161,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 			if (androidCamera.frontFacing)
 				camId = androidCamera.id;
 		}
-		mLinphoneCore.setVideoDevice(camId);
+		mCore.setVideoDevice(""+camId);
 	}
 
 	private void copyAssetsFromPackage(String basePath) throws IOException {
@@ -163,45 +175,37 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 		LinphoneMiniUtils.copyFromPackage(mContext, resources.getIdentifier("linphonerc_factory", "raw", package_name), new File(basePath + "/linphonerc").getName());
 		LinphoneMiniUtils.copyIfNotExist(mContext, resources.getIdentifier("lpconfig", "raw", package_name), basePath + "/lpconfig.xsd");
 		LinphoneMiniUtils.copyIfNotExist(mContext, resources.getIdentifier("rootca", "raw", package_name), basePath + "/rootca.pem");
+		LinphoneMiniUtils.copyIfNotExist(mContext, resources.getIdentifier("vcard_grammar", "raw", package_name), basePath + "/vcard_grammar.pem");
+		LinphoneMiniUtils.copyIfNotExist(mContext, resources.getIdentifier("cpim_grammar", "raw", package_name), basePath + "/cpim_grammar.pem");
 	}
 
-	private void initLinphoneCoreValues(String basePath) {
-		mLinphoneCore.setContext(mContext);
-		mLinphoneCore.setRing(null);
-		mLinphoneCore.setRootCA(basePath + "/rootca.pem");
-		mLinphoneCore.setPlayFile(basePath + "/toy_mono.wav");
-		mLinphoneCore.setChatDatabasePath(basePath + "/linphone-history.db");
+	private void initCoreValues(String basePath) {
+//		mCore.setContext(mContext);
+		mCore.setRing(null);
+		mCore.setRootCa(basePath + "/rootca.pem");
+		mCore.setPlayFile(basePath + "/toy_mono.wav");
+		mCore.setCallLogsDatabasePath(basePath + "/linphone-history.db");
 
-		int availableCores = Runtime.getRuntime().availableProcessors();
-		mLinphoneCore.setCpuCount(availableCores);
+//		int availableCores = Runtime.getRuntime().availableProcessors();
+//		mCore.getConfig(availableCores);
 	}
 
     public void newOutgoingCall(String to, String displayName) {
-        LinphoneAddress lAddress;
-        try {
-            lAddress = mLinphoneCore.interpretUrl(to);
-            LinphoneProxyConfig isLowBandwidthConnection = mLinphoneCore.getDefaultProxyConfig();
+        Address lAddress;
+		lAddress = mCore.interpretUrl(to);
 
-            LinphoneProxyConfig lpc = mLinphoneCore.getDefaultProxyConfig();
+		ProxyConfig lpc = mCore.getDefaultProxyConfig();
 
-            if (lpc!=null && lAddress.asStringUriOnly().equals(lpc.getIdentity())) {
-                return;
-            }
-        } catch (LinphoneCoreException var8) {
-            return;
-        }
+		if (lpc!=null && lAddress.asStringUriOnly().equals(lpc.getDomain())) {
+			return;
+		}
 
         lAddress.setDisplayName(displayName);
 
-        if(mLinphoneCore.isNetworkReachable()) {
-            try {
-				//TODO:SEZER
-                LinphoneCallParams params = mLinphoneCore.createCallParams(mLinphoneCore.getCurrentCall());
-                params.setVideoEnabled(false);
-                mLinphoneCore.inviteAddressWithParams(lAddress, params);
-            } catch (LinphoneCoreException var7) {
-                return;
-            }
+        if(mCore.isNetworkReachable()) {
+			CallParams params = mCore.createCallParams(mCore.getCurrentCall());
+			params.enableVideo(false);
+			mCore.inviteAddressWithParams(lAddress, params);
         } else {
             Log.e(new Object[]{"Error: Network unreachable"});
         }
@@ -209,262 +213,61 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
     }
 
     public void terminateCall() {
-        if (mLinphoneCore.isIncall()) {
-            mLinphoneCore.terminateCall(mLinphoneCore.getCurrentCall());
+        if (mCore.inCall()) {
+            mCore.terminateCall(mCore.getCurrentCall());
         }
     }
 
     public boolean toggleEnableCamera() {
-        if (mLinphoneCore.isIncall()) {
-            boolean enabled = !mLinphoneCore.getCurrentCall().cameraEnabled();
-            enableCamera(mLinphoneCore.getCurrentCall(), enabled);
+        if (mCore.inCall()) {
+            boolean enabled = !mCore.getCurrentCall().cameraEnabled();
+            enableCamera(mCore.getCurrentCall(), enabled);
             return enabled;
         }
         return false;
     }
 
     public boolean toggleEnableSpeaker() {
-        if (mLinphoneCore.isIncall()) {
-			boolean enabled = !mLinphoneCore.isSpeakerEnabled();
-			mLinphoneCore.enableSpeaker(enabled);
-            return enabled;
-        }
+//        if (mCore.inCall()) {
+//			boolean enabled = !mCore.;
+//			mCore.enableSpeaker(enabled);
+//            return enabled;
+//        }
         return false;
     }
 
     public boolean toggleMute() {
-        if (mLinphoneCore.isIncall()) {
-			boolean enabled = !mLinphoneCore.isMicMuted();
-			mLinphoneCore.muteMic(enabled);
-			return enabled;
-        }
+//        if (mCore.inCall()) {
+//			boolean enabled = !mCore.();
+//			mCore.muteMic(enabled);
+//			return enabled;
+//        }
         return false;
     }
 
-    public void enableCamera(LinphoneCall call, boolean enable) {
+    public void enableCamera(Call call, boolean enable) {
         if (call != null) {
             call.enableCamera(enable);
 		}
     }
 
     public void sendDtmf(char number) {
-		mLinphoneCore.sendDtmf(number);
+		mCore.getCurrentCall().sendDtmf(number);
     }
 
 	public void updateCall() {
-		LinphoneCore lc = mLinphoneCore;
-		LinphoneCall lCall = lc.getCurrentCall();
+		Core lc = mCore;
+		Call lCall = lc.getCurrentCall();
 		if (lCall == null) {
 			Log.e(new Object[]{"Trying to updateCall while not in call: doing nothing"});
 		} else {
-			LinphoneCallParams params = lCall.getCurrentParamsCopy();
-			lc.updateCall(lCall, (LinphoneCallParams) null);
+			CallParams params = lCall.getParams();
+			lc.getCurrentCall().setParams(params);
 		}
 	}
 
-	@Override
-	public void globalState(LinphoneCore lc, GlobalState state, String message) {
-		Log.d("Global state: " + state + "(" + message + ")");
-	}
 
-	@Override
-	public void callState(LinphoneCore lc, LinphoneCall call, State cstate,
-			String message) {
 
-			if(cstate == State.Connected)
-			{
-				mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "Connected"));
-			}
-			else if(cstate == State.IncomingReceived)
-			{
-                mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"Incoming"));
-			}
-			else if(cstate == State.CallEnd)
-			{
-				mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"End"));
-			}
-			else if(cstate == State.Error)
-			{
-				mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"Error"));
-			}
-		Log.d("Call state: " + cstate + "(" + message + ")");
-	}
-
-	@Override
-	public void authInfoRequested(LinphoneCore linphoneCore, String s, String s1, String s2) {
-		Log.d("authInfoRequested");
-	}
-
-	@Override
-	public void authenticationRequested(LinphoneCore linphoneCore, LinphoneAuthInfo linphoneAuthInfo, LinphoneCore.AuthMethod authMethod) {
-		Log.d("authenticationRequested");
-	}
-
-	@Override
-	public void callStatsUpdated(LinphoneCore lc, LinphoneCall call,
-			LinphoneCallStats stats) {
-
-	}
-
-	@Override
-	public void callEncryptionChanged(LinphoneCore lc, LinphoneCall call,
-			boolean encrypted, String authenticationToken) {
-
-	}
-
-	@Override
-	public void registrationState(LinphoneCore lc, LinphoneProxyConfig cfg,
-			RegistrationState cstate, String smessage) {
-		if(cstate == RegistrationState.RegistrationOk)
-		{
-			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationSuccess"));
-
-		}
-		else if(cstate == RegistrationState.RegistrationFailed)
-		{
-			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationFailed:: "+smessage));
-		}
-	}
-
-	@Override
-	public void newSubscriptionRequest(LinphoneCore lc, LinphoneFriend lf,
-			String url) {
-
-	}
-
-	@Override
-	public void notifyPresenceReceived(LinphoneCore lc, LinphoneFriend lf) {
-		Log.d("notifyPresenceReceived");
-	}
-
-	@Override
-	public void messageReceived(LinphoneCore lc, LinphoneChatRoom cr,
-			LinphoneChatMessage message) {
-		Log.d("Message received from " + cr.getPeerAddress().asString() + " : " + message.getText() + "(" + message.getExternalBodyUrl() + ")");
-	}
-
-	@Override
-	public void messageReceivedUnableToDecrypted(LinphoneCore linphoneCore, LinphoneChatRoom linphoneChatRoom, LinphoneChatMessage linphoneChatMessage) {
-		Log.d("messageReceivedUnableToDecrypted");
-	}
-
-	@Override
-	public void isComposingReceived(LinphoneCore lc, LinphoneChatRoom cr) {
-		Log.d("Composing received from " + cr.getPeerAddress().asString());
-	}
-
-	@Override
-	public void dtmfReceived(LinphoneCore lc, LinphoneCall call, int dtmf) {
-
-	}
-
-	@Override
-	public void ecCalibrationStatus(LinphoneCore lc, EcCalibratorStatus status,
-			int delay_ms, Object data) {
-
-	}
-
-	@Override
-	public void uploadProgressIndication(LinphoneCore linphoneCore, int i, int i1) {
-
-	}
-
-	@Override
-	public void uploadStateChanged(LinphoneCore linphoneCore, LinphoneCore.LogCollectionUploadState logCollectionUploadState, String s) {
-
-	}
-
-	@Override
-	public void friendListCreated(LinphoneCore linphoneCore, LinphoneFriendList linphoneFriendList) {
-
-	}
-
-	@Override
-	public void friendListRemoved(LinphoneCore linphoneCore, LinphoneFriendList linphoneFriendList) {
-
-	}
-
-	@Override
-	public void networkReachableChanged(LinphoneCore linphoneCore, boolean b) {
-
-	}
-
-	@Override
-	public void notifyReceived(LinphoneCore lc, LinphoneCall call,
-			LinphoneAddress from, byte[] event) {
-
-	}
-
-	@Override
-	public void transferState(LinphoneCore lc, LinphoneCall call,
-			State new_call_state) {
-
-	}
-
-	@Override
-	public void infoReceived(LinphoneCore lc, LinphoneCall call,
-			LinphoneInfoMessage info) {
-
-	}
-
-	@Override
-	public void subscriptionStateChanged(LinphoneCore lc, LinphoneEvent ev,
-			SubscriptionState state) {
-
-	}
-
-	@Override
-	public void notifyReceived(LinphoneCore lc, LinphoneEvent ev,
-			String eventName, LinphoneContent content) {
-		Log.d("Notify received: " + eventName + " -> " + content.getDataAsString());
-	}
-
-	@Override
-	public void publishStateChanged(LinphoneCore lc, LinphoneEvent ev,
-			PublishState state) {
-
-	}
-
-	@Override
-	public void configuringStatus(LinphoneCore lc,
-			RemoteProvisioningState state, String message) {
-		Log.d("Configuration state: " + state + "(" + message + ")");
-	}
-
-	@Override
-	public void show(LinphoneCore lc) {
-
-	}
-
-	@Override
-	public void displayStatus(LinphoneCore lc, String message) {
-
-	}
-
-	@Override
-	public void displayMessage(LinphoneCore lc, String message) {
-
-	}
-
-	@Override
-	public void displayWarning(LinphoneCore lc, String message) {
-
-	}
-
-	@Override
-	public void fileTransferProgressIndication(LinphoneCore linphoneCore, LinphoneChatMessage linphoneChatMessage, LinphoneContent linphoneContent, int i) {
-
-	}
-
-	@Override
-	public void fileTransferRecv(LinphoneCore linphoneCore, LinphoneChatMessage linphoneChatMessage, LinphoneContent linphoneContent, byte[] bytes, int i) {
-
-	}
-
-	@Override
-	public int fileTransferSend(LinphoneCore linphoneCore, LinphoneChatMessage linphoneChatMessage, LinphoneContent linphoneContent, ByteBuffer byteBuffer, int i) {
-		return 0;
-	}
 
 	public void listenCall(CallbackContext callbackContext){
 		mCallbackContext = callbackContext;
@@ -472,12 +275,11 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 
 	public void acceptCall(CallbackContext callbackContext) {
 		mCallbackContext = callbackContext;
-        LinphoneCall call = mLinphoneCore.getCurrentCall();
-        try {
-            mLinphoneCore.acceptCall(call);
-        } catch (LinphoneCoreException e) {
-            e.printStackTrace();
-        }
+        Call call = mCore.getCurrentCall();
+		if(call != null){
+			call.accept();
+		}
+
 	}
 
 	public void call(String address, String displayName, CallbackContext callbackContext) {
@@ -491,46 +293,240 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 	}
 
 	public void login(String username, String password, String domain, CallbackContext callbackContext) {
-		try {
-		//LinphoneAddress address = LinphoneCoreFactory.instance().createLinphoneAddress("sip:" + username + "@" + domain);
+		Factory lcFactory = Factory.instance();
 
 
-
-//		LinphonePreferences.AccountBuilder builder = new LinphonePreferences.AccountBuilder(getLc())
-//				.setUsername(username)
-//				.setDomain(domain)
-//				.setPassword(password);
-
-			LinphoneCoreFactory lcFactory = LinphoneCoreFactory.instance();
-
-
-			LinphoneAddress address = lcFactory.createLinphoneAddress("sip:" + username + "@" + domain);
-			username = address.getUserName();
-			domain = address.getDomain();
-			if(password != null) {
-				mLinphoneCore.addAuthInfo(lcFactory.createAuthInfo(username, password, (String)null, domain));
-			}
+		Address address = lcFactory.createAddress("sip:" + username + "@" + domain);
+		username = address.getUsername();
+		domain = address.getDomain();
+		if(password != null) {
+			mCore.addAuthInfo(lcFactory.createAuthInfo(username, (String)null ,password, (String)null, domain, domain));
+		}
 
 
-			LinphoneProxyConfig proxyCfg = mLinphoneCore.createProxyConfig("sip:" + username + "@" + domain, domain, (String)null, true);
+//			ProxyConfig proxyCfg = mCore.createProxyConfig("sip:" + username + "@" + domain, domain, (String)null, true);
+		ProxyConfig proxyCfg = mCore.createProxyConfig();
+		proxyCfg.edit();
+		proxyCfg.setIdentityAddress(address);
+		proxyCfg.done();
 
-			proxyCfg.enableRegister(true);
-			mLinphoneCore.addProxyConfig(proxyCfg);
-			mLinphoneCore.setDefaultProxyConfig(proxyCfg);
+		proxyCfg.setServerAddr(domain);
+
+
+		proxyCfg.enableRegister(true);
+		mCore.addProxyConfig(proxyCfg);
+		mCore.setDefaultProxyConfig(proxyCfg);
 
 
 
 
-			mLoginCallbackContext = callbackContext;
+		mLoginCallbackContext = callbackContext;
 
 
 
-			//builder.saveNewAccount();
-		} catch (LinphoneCoreException e) {
-			e.printStackTrace();
+	}
+
+	@Override
+	public void onGlobalStateChanged(Core core, GlobalState globalState, String s) {
+		android.util.Log.d(TAG,"Global state changed");
+		android.util.Log.d(TAG,globalState.name());
+		android.util.Log.d(TAG,s);
+	}
+
+	@Override
+	public void onRegistrationStateChanged(Core core, ProxyConfig proxyConfig, RegistrationState registrationState, String s) {
+		if(registrationState == RegistrationState.Ok)
+		{
+			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationSuccess"));
+
+		}
+		else if(registrationState == RegistrationState.Failed)
+		{
+			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationFailed:: "+s));
 		}
 	}
 
+	@Override
+	public void onCallStateChanged(Core core, Call call, State state, String s) {
+		if(state == State.Connected)
+		{
+			mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "Connected"));
+		}
+		else if(state == State.IncomingReceived)
+		{
+			mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"Incoming"));
+		}
+		else if(state == State.End)
+		{
+			mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"End"));
+		}
+		else if(state == State.Error)
+		{
+			mCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"Error"));
+		}
+		Log.d("Call state: " + state + "(" + s + ")");
+
+	}
+
+	@Override
+	public void onNotifyPresenceReceived(Core core, Friend friend) {
+
+	}
+
+	@Override
+	public void onNotifyPresenceReceivedForUriOrTel(Core core, Friend friend, String s, PresenceModel presenceModel) {
+
+	}
+
+	@Override
+	public void onNewSubscriptionRequested(Core core, Friend friend, String s) {
+
+	}
+
+	@Override
+	public void onAuthenticationRequested(Core core, AuthInfo authInfo, AuthMethod authMethod) {
+
+	}
+
+	@Override
+	public void onCallLogUpdated(Core core, CallLog callLog) {
+
+	}
+
+	@Override
+	public void onMessageReceived(Core core, ChatRoom chatRoom, ChatMessage chatMessage) {
+
+	}
+
+	@Override
+	public void onMessageReceivedUnableDecrypt(Core core, ChatRoom chatRoom, ChatMessage chatMessage) {
+
+	}
+
+	@Override
+	public void onIsComposingReceived(Core core, ChatRoom chatRoom) {
+
+	}
+
+	@Override
+	public void onDtmfReceived(Core core, Call call, int i) {
+
+	}
+
+	@Override
+	public void onReferReceived(Core core, String s) {
+
+	}
+
+	@Override
+	public void onCallEncryptionChanged(Core core, Call call, boolean b, String s) {
+
+	}
+
+	@Override
+	public void onTransferStateChanged(Core core, Call call, State state) {
+
+	}
+
+	@Override
+	public void onBuddyInfoUpdated(Core core, Friend friend) {
+
+	}
+
+	@Override
+	public void onCallStatsUpdated(Core core, Call call, CallStats callStats) {
+
+	}
+
+	@Override
+	public void onInfoReceived(Core core, Call call, InfoMessage infoMessage) {
+
+	}
+
+	@Override
+	public void onSubscriptionStateChanged(Core core, Event event, SubscriptionState subscriptionState) {
+
+	}
+
+	@Override
+	public void onNotifyReceived(Core core, Event event, String s, Content content) {
+
+	}
+
+	@Override
+	public void onSubscribeReceived(Core core, Event event, String s, Content content) {
+
+	}
+
+	@Override
+	public void onPublishStateChanged(Core core, Event event, PublishState publishState) {
+
+	}
+
+	@Override
+	public void onConfiguringStatus(Core core, ConfiguringState configuringState, String s) {
+
+	}
+
+	@Override
+	public void onNetworkReachable(Core core, boolean b) {
+
+	}
+
+	@Override
+	public void onLogCollectionUploadStateChanged(Core core, Core.LogCollectionUploadState logCollectionUploadState, String s) {
+
+	}
+
+	@Override
+	public void onLogCollectionUploadProgressIndication(Core core, int i, int i1) {
+
+	}
+
+	@Override
+	public void onFriendListCreated(Core core, FriendList friendList) {
+
+	}
+
+	@Override
+	public void onFriendListRemoved(Core core, FriendList friendList) {
+
+	}
+
+	@Override
+	public void onCallCreated(Core core, Call call) {
+
+	}
+
+	@Override
+	public void onVersionUpdateCheckResultReceived(Core core, VersionUpdateCheckResult versionUpdateCheckResult, String s, String s1) {
+
+	}
+
+	@Override
+	public void onChatRoomStateChanged(Core core, ChatRoom chatRoom, ChatRoom.State state) {
+
+	}
+
+	@Override
+	public void onQrcodeFound(Core core, String s) {
+
+	}
+
+	@Override
+	public void onEcCalibrationResult(Core core, EcCalibratorStatus ecCalibratorStatus, int i) {
+
+	}
+
+	@Override
+	public void onEcCalibrationAudioInit(Core core) {
+
+	}
+
+	@Override
+	public void onEcCalibrationAudioUninit(Core core) {
+
+	}
 }
 
 
