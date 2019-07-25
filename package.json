@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-sip",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "<h2>SIP plugin for Cordova & Phonegap Apps (IOS and Android)</h2>",
   "main": "index.js",
   "scripts": {
