@@ -33,25 +33,12 @@
     <source-file src="src/android/src/LinphoneMiniManager.java" target-dir="src/com/sip/linphone" />
     <source-file src="src/android/src/LinphoneMiniUtils.java" target-dir="src/com/sip/linphone" />
     <source-file src="src/android/res/layout/incall.xml" target-dir="res/layout" />
-    <source-file src="src/android/res/raw/incoming_chat.wav" target-dir="res/raw" />
     <source-file src="src/android/res/raw/linphonerc_default" target-dir="res/raw" />
     <source-file src="src/android/res/raw/linphonerc_factory" target-dir="res/raw" />
     <source-file src="src/android/res/raw/lpconfig.xsd" target-dir="res/raw" />
     <source-file src="src/android/res/raw/ringback.wav" target-dir="res/raw" />    
     <source-file src="src/android/res/raw/rootca.pem" target-dir="res/raw" />
-
-    <source-file src="src/android/res/raw/cpim_grammar" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/dont_wait_too_long.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/four_hands_together.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/hello8000.wav" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/hello16000.wav" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/house_keeping.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/its_a_game.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/leaving_dreams.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/notes_of_the_optimistic.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/oldphone_mono.wav" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/soft_as_snow.mkv" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/toy_mono.wav" target-dir="res/raw" />
+    <source-file src="src/android/res/raw/oldphone_mono.wav" target-dir="res/raw" />    
     <source-file src="src/android/res/raw/vcard_grammar" target-dir="res/raw" />
 
     <source-file src="src/android/libs/linphone.jar" target-dir="libs" />
