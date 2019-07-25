@@ -1,10 +1,10 @@
 {
   "name": "cordova-plugin-sip",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "<h2>SIP plugin for Cordova & Phonegap Apps (IOS and Android)</h2>",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "version": "node ./bump-version.js && git add -A plugin.xml"
   },
   "repository": {
     "type": "git",
