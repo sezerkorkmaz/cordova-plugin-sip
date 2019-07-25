@@ -322,7 +322,7 @@ public class LinphoneMiniManager implements LinphoneCoreListener {
 		}
 		else if(cstate == RegistrationState.RegistrationFailed)
 		{
-			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationFailed"));
+			mLoginCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,"RegistrationFailed"+smessage));
 		}
 	}
 
