@@ -214,7 +214,8 @@ public class LinphoneMiniManager implements CoreListener {
 
     public void terminateCall() {
         if (mCore.inCall()) {
-            mCore.terminateCall(mCore.getCurrentCall());
+            Call c = mCore.getCurrentCall();
+            if (c != null) c.terminate();
         }
     }
 
@@ -385,12 +386,12 @@ public class LinphoneMiniManager implements CoreListener {
 
 	@Override
 	public void onAuthenticationRequested(Core core, AuthInfo authInfo, AuthMethod authMethod) {
-
+		android.util.Log.d(TAG, "Authentication requested");
 	}
 
 	@Override
 	public void onCallLogUpdated(Core core, CallLog callLog) {
-
+		android.util.Log.d(TAG, "Call log updated"+callLog.toStr());
 	}
 
 	@Override
@@ -410,7 +411,7 @@ public class LinphoneMiniManager implements CoreListener {
 
 	@Override
 	public void onDtmfReceived(Core core, Call call, int i) {
-
+		android.util.Log.d(TAG, "DTMF RECEIVED");
 	}
 
 	@Override
@@ -435,17 +436,17 @@ public class LinphoneMiniManager implements CoreListener {
 
 	@Override
 	public void onCallStatsUpdated(Core core, Call call, CallStats callStats) {
-
+		android.util.Log.d(TAG, "Call stats updated:: Download bandwidth :: "+callStats.getDownloadBandwidth());
 	}
 
 	@Override
 	public void onInfoReceived(Core core, Call call, InfoMessage infoMessage) {
-
+		android.util.Log.d(TAG, "Info message received :: "+infoMessage.getContent().getStringBuffer());
 	}
 
 	@Override
 	public void onSubscriptionStateChanged(Core core, Event event, SubscriptionState subscriptionState) {
-
+		android.util.Log.d(TAG, "Subscription state changed :: "+subscriptionState.name());
 	}
 
 	@Override
@@ -470,7 +471,7 @@ public class LinphoneMiniManager implements CoreListener {
 
 	@Override
 	public void onNetworkReachable(Core core, boolean b) {
-
+		android.util.Log.d(TAG, "Network reachable??"+b);
 	}
 
 	@Override
