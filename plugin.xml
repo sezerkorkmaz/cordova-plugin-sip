@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android"
-    id="cordova-plugin-sip"
-    version="1.0.0">
+<plugin id="cordova-plugin-sip" version="1.1.4" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
   <name>SIP - LinPhone</name>
   <description>A plugin to integrate linphone features to cordova</description>
   <license>MIT</license>
@@ -10,7 +8,7 @@
   <engines>
     <engine name="cordova-android" version=">=4.0.0-dev" />
     <engine name="cordova-ios" version=">=4.0.0-dev" />
-    <engine name="cordova-wp8" version=">=4.0.0-dev" />
+    <!-- <engine name="cordova-wp8" version=">=4.0.0-dev" /> -->
   </engines>
 
   <!-- android -->
@@ -35,49 +33,52 @@
     <source-file src="src/android/src/LinphoneMiniManager.java" target-dir="src/com/sip/linphone" />
     <source-file src="src/android/src/LinphoneMiniUtils.java" target-dir="src/com/sip/linphone" />
     <source-file src="src/android/res/layout/incall.xml" target-dir="res/layout" />
-    <source-file src="src/android/res/raw/incoming_chat.wav" target-dir="res/raw" />
     <source-file src="src/android/res/raw/linphonerc_default" target-dir="res/raw" />
     <source-file src="src/android/res/raw/linphonerc_factory" target-dir="res/raw" />
     <source-file src="src/android/res/raw/lpconfig.xsd" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/oldphone_mono.wav" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/ringback.wav" target-dir="res/raw" />
-    <source-file src="src/android/res/raw/toy_mono.wav" target-dir="res/raw" />
+    <source-file src="src/android/res/raw/ringback.wav" target-dir="res/raw" />    
     <source-file src="src/android/res/raw/rootca.pem" target-dir="res/raw" />
+    <source-file src="src/android/res/raw/oldphone_mono.wav" target-dir="res/raw" />    
+    <source-file src="src/android/res/raw/vcard_grammar" target-dir="res/raw" />
 
     <source-file src="src/android/libs/linphone.jar" target-dir="libs" />
     
-    <source-file src="src/android/libs/arm64-v8a/libbctoolbox-arm64-v8a.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/libbctoolbox-tester-arm64-v8a.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/libgnustl_shared.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/liblinphone-arm64-v8a.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/liblinphonetester-arm64-v8a.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/libmediastreamer_base-arm64-v8a.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/libmediastreamer_voip-arm64-v8a.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/libmssilk.so" target-dir="libs/arm64-v8a" />
+    <source-file src="src/android/libs/arm64-v8a/libbctoolbox.so" target-dir="libs/arm64-v8a" />    
+    <source-file src="src/android/libs/arm64-v8a/libc++_shared.so" target-dir="libs/arm64-v8a" />    
+    <source-file src="src/android/libs/arm64-v8a/liblinphone.so" target-dir="libs/arm64-v8a" />    
+    <source-file src="src/android/libs/arm64-v8a/libmediastreamer.so" target-dir="libs/arm64-v8a" />
+    <source-file src="src/android/libs/arm64-v8a/libmediastreamer_base.so" target-dir="libs/arm64-v8a" />
+    <source-file src="src/android/libs/arm64-v8a/libmediastreamer_voip.so" target-dir="libs/arm64-v8a" />    
     <source-file src="src/android/libs/arm64-v8a/libmswebrtc.so" target-dir="libs/arm64-v8a" />
-    <source-file src="src/android/libs/arm64-v8a/libortp-arm64-v8a.so" target-dir="libs/arm64-v8a" />
+    <source-file src="src/android/libs/arm64-v8a/libortp.so" target-dir="libs/arm64-v8a" />
 
-    <source-file src="src/android/libs/armeabi-v7a/libbctoolbox-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/libbctoolbox-tester-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/libgnustl_shared.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/liblinphone-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/liblinphonetester-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/libmediastreamer_base-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/libmediastreamer_voip-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/libmssilk.so" target-dir="libs/armeabi-v7a" />
+
+    <source-file src="src/android/libs/armeabi-v7a/libbctoolbox.so" target-dir="libs/armeabi-v7a" />    
+    <source-file src="src/android/libs/armeabi-v7a/libc++_shared.so" target-dir="libs/armeabi-v7a" />    
+    <source-file src="src/android/libs/armeabi-v7a/liblinphone.so" target-dir="libs/armeabi-v7a" />    
+    <source-file src="src/android/libs/armeabi-v7a/libmediastreamer.so" target-dir="libs/armeabi-v7a" />
+    <source-file src="src/android/libs/armeabi-v7a/libmediastreamer_base.so" target-dir="libs/armeabi-v7a" />
+    <source-file src="src/android/libs/armeabi-v7a/libmediastreamer_voip.so" target-dir="libs/armeabi-v7a" />    
     <source-file src="src/android/libs/armeabi-v7a/libmswebrtc.so" target-dir="libs/armeabi-v7a" />
-    <source-file src="src/android/libs/armeabi-v7a/libortp-armeabi-v7a.so" target-dir="libs/armeabi-v7a" />
+    <source-file src="src/android/libs/armeabi-v7a/libortp.so" target-dir="libs/armeabi-v7a" />
 
-    <source-file src="src/android/libs/x86/libbctoolbox-tester-x86.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/libbctoolbox-x86.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/libgnustl_shared.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/liblinphonetester-x86.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/liblinphone-x86.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/libmediastreamer_base-x86.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/libmediastreamer_voip-x86.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/libmssilk.so" target-dir="libs/x86" />
+    
+
+    <source-file src="src/android/libs/x86/libbctoolbox.so" target-dir="libs/x86" />    
+    <source-file src="src/android/libs/x86/libc++_shared.so" target-dir="libs/x86" />    
+    <source-file src="src/android/libs/x86/liblinphone.so" target-dir="libs/x86" />    
+    <source-file src="src/android/libs/x86/libmediastreamer.so" target-dir="libs/x86" />
+    <source-file src="src/android/libs/x86/libmediastreamer_base.so" target-dir="libs/x86" />
+    <source-file src="src/android/libs/x86/libmediastreamer_voip.so" target-dir="libs/x86" />    
     <source-file src="src/android/libs/x86/libmswebrtc.so" target-dir="libs/x86" />
-    <source-file src="src/android/libs/x86/libortp-x86.so" target-dir="libs/x86" />
+    <source-file src="src/android/libs/x86/libortp.so" target-dir="libs/x86" />
+
+    <source-file src="src/android/libs/x86_64/libbctoolbox.so" target-dir="libs/x86_64" />    
+    <source-file src="src/android/libs/x86_64/libc++_shared.so" target-dir="libs/x86_64" />    
+    <source-file src="src/android/libs/x86_64/liblinphone.so" target-dir="libs/x86_64" />    
+    <source-file src="src/android/libs/x86_64/libmediastreamer.so" target-dir="libs/x86_64" />    
+    <source-file src="src/android/libs/x86_64/libmswebrtc.so" target-dir="libs/x86_64" />
+    <source-file src="src/android/libs/x86_64/libortp.so" target-dir="libs/x86_64" />
 
     <js-module src="www/cordova-plugins-sip.js" name="linphone">
       <merges target="cordova.plugins.sip" />

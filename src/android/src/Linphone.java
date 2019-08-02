@@ -3,7 +3,6 @@ package com.sip.linphone;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipManager;
 import android.net.sip.SipProfile;
@@ -14,8 +13,8 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.linphone.core.LinphoneCore;
-import org.linphone.core.LinphoneProxyConfig;
+import org.linphone.core.Core;
+import org.linphone.core.ProxyConfig;
 import org.linphone.mediastream.Log;
 
 import java.util.Timer;
@@ -23,7 +22,7 @@ import java.util.Timer;
 public class Linphone extends CordovaPlugin  {
     public static Linphone mInstance;
     public static LinphoneMiniManager mLinphoneManager;
-    public static LinphoneCore mLinphoneCore;
+    public static Core mLinphoneCore;
     public static Context mContext;
     private static final int RC_MIC_PERM = 2;
     public static Timer mTimer;
@@ -48,40 +47,41 @@ public class Linphone extends CordovaPlugin  {
 
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
             throws JSONException {
-        if (action.equals("login")) {
-            login(args.getString(0), args.getString(1), args.getString(2), callbackContext);
-            return true;
-        }else if (action.equals("logout")) {
-            logout(callbackContext);
-            return true;
-        }else if (action.equals("call")) {
-            call(args.getString(0), args.getString(1), callbackContext);
-            return true;
-        }else if(action.equals("listenCall")){
-            listenCall(callbackContext);
-            return true;
-        }
-        else if(action.equals("acceptCall")){
-            acceptCall(args.getString(0), callbackContext);
-            return true;
-        }else if (action.equals("videocall")) {
-            videocall(args.getString(0), args.getString(1), callbackContext);
-            return true;
-        }else if(action.equals("hangup")){
-            hangup(callbackContext);
-            return true;
-        }else if(action.equals("toggleVideo")){
-            toggleVideo(callbackContext);
-            return true;
-        }else if(action.equals("toggleSpeaker")){
-            toggleSpeaker(callbackContext);
-            return true;
-        }else if(action.equals("toggleMute")){
-            toggleMute(callbackContext);
-            return true;
-        }else if(action.equals("sendDtmf")){
-            sendDtmf(args.getString(0), callbackContext);
-            return true;
+        switch (action) {
+            case "login":
+                android.util.Log.d("CORE","LOGIN IN");
+                login(args.getString(0), args.getString(1), args.getString(2), callbackContext);
+                return true;
+            case "logout":
+                logout(callbackContext);
+                return true;
+            case "call":
+                call(args.getString(0), args.getString(1), callbackContext);
+                return true;
+            case "listenCall":
+                listenCall(callbackContext);
+                return true;
+            case "acceptCall":
+                acceptCall(args.getString(0), callbackContext);
+                return true;
+            case "videocall":
+                videocall(args.getString(0), args.getString(1), callbackContext);
+                return true;
+            case "hangup":
+                hangup(callbackContext);
+                return true;
+            case "toggleVideo":
+                toggleVideo(callbackContext);
+                return true;
+            case "toggleSpeaker":
+                toggleSpeaker(callbackContext);
+                return true;
+            case "toggleMute":
+                toggleMute(callbackContext);
+                return true;
+            case "sendDtmf":
+                sendDtmf(args.getString(0), callbackContext);
+                return true;
         }
         return false;
     }
@@ -102,8 +102,8 @@ public class Linphone extends CordovaPlugin  {
     public static synchronized void logout(final CallbackContext callbackContext) {
         try{
             Log.d("logout");
-            LinphoneProxyConfig[] prxCfgs = mLinphoneManager.getLc().getProxyConfigList();
-            final LinphoneProxyConfig proxyCfg = prxCfgs[0];
+            ProxyConfig[] prxCfgs = mLinphoneManager.getLc().getProxyConfigList();
+            final ProxyConfig proxyCfg = prxCfgs[0];
             mLinphoneManager.getLc().removeProxyConfig(proxyCfg);
             Log.d("logout sukses");
             callbackContext.success();
@@ -134,7 +134,7 @@ public class Linphone extends CordovaPlugin  {
     }
 
     public static synchronized void acceptCall( final String isAcceptCall, final CallbackContext callbackContext){
-        if(isAcceptCall == "true")
+        if("true".equals(isAcceptCall))
             mLinphoneManager.acceptCall(callbackContext);
         else
             mLinphoneManager.terminateCall();

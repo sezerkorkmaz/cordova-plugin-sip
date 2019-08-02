@@ -1,19 +1,52 @@
 {
   "name": "cordova-plugin-sip",
-  "version": "1.0.0",
+  "version": "1.1.3",
   "description": "<h2>SIP plugin for Cordova & Phonegap Apps (IOS and Android)</h2>",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "version": "node ./bump-version.js && git add -A plugin.xml"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sambengtson/cordova-plugin-sip.git"
   },
-  "author": "",
+  "author": "AIM Services",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/sambengtson/cordova-plugin-sip/issues"
   },
-  "homepage": "https://github.com/sambengtson/cordova-plugin-sip#readme"  
+  "homepage": "https://github.com/sambengtson/cordova-plugin-sip#readme",
+  "cordova": {
+    "id": "cordova-plugin-sip",
+    "platforms": [
+      "android",
+      "ios",
+      "wp8"
+    ]
+  },
+  "keywords": [
+    "sip",
+    "cordova",
+    "phonegap",
+    "linphone",
+    "liblinphone",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios",
+    "cordova-wp8"
+  ],
+  "engines": [
+    {
+      "name": "cordova-android",
+      "version": ">=4.0.0-dev"
+    },
+    {
+      "name": "cordova-ios",
+      "version": ">=4.0.0-dev"
+    },
+    {
+      "name": "cordova-wp8",
+      "version": ">=4.0.0-dev"
+    }
+  ]
 }
