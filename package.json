@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sambengtson/cordova-plugin-sip.git"
+    "url": "git+https://github.com/sezerkorkmaz/cordova-plugin-sip.git"
   },
   "author": "AIM Services",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sambengtson/cordova-plugin-sip/issues"
+    "url": "https://github.com/sezerkorkmaz/cordova-plugin-sip/issues"
   },
-  "homepage": "https://github.com/sambengtson/cordova-plugin-sip#readme",
+  "homepage": "https://github.com/sezerkorkmaz/cordova-plugin-sip#readme",
   "cordova": {
     "id": "cordova-plugin-sip",
     "platforms": [
