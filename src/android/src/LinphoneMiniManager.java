@@ -98,6 +98,7 @@ public class LinphoneMiniManager implements CoreListener {
 			mCore.setNetworkReachable(true); // Let's assume it's true
 			mCore.addListener(this);
 			mCaptureView = new SurfaceView(mContext);
+			mCore.start();
 		} catch (IOException e) {
 			Log.e(new Object[]{"Error initializing Linphone",e.getMessage()});
 
