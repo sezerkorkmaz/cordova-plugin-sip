@@ -3,6 +3,9 @@
 
 <h3>IOS</h3>
 
+<h2>To Support: BTC Wallet : 1NAgrPXp7nENexCffSzMjDBPbdkFMAW2Y9
+</h2>
+
 <h4>Build Settings -> Header Search Paths</h4>
 
 ```
