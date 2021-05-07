@@ -1,7 +1,6 @@
 # cordova-plugin-sip
 <h2>SIP plugin for Cordova & Phonegap Apps (IOS and Android)</h2>
-<h2>To Support Project: BTC Wallet : 1NAgrPXp7nENexCffSzMjDBPbdkFMAW2Y9
-</h2>
+
 <h3>IOS</h3>
 
 
